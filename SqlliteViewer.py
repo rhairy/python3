@@ -1,39 +1,75 @@
+import sqlite3
+
 from tkinter import *
 from tkinter import ttk
 
-# Should I be using a global variable? Alternatives?
-DbFilePath = ""
+class Window:
+    def __init__(self):
+        self.DbFilePath = None
+        self.DbFile = None
+        self.Query = None
+        
+        self.DbFileIsOpen = False
+        self.QueryTextIsDefault = True
+        
+        self.root = Tk()
+        self.root.title("SqlCat")
 
-def OpenDbFile():
-    global DbFilePath
-    DbFilePath = filedialog.askopenfilename()
-    
-root = Tk()
-root.title("SqlCat")
+        self.ContentFrame = ttk.Frame(self.root)
 
-ContentFrame = ttk.Frame(root)
+        # DbPath Widgets
+        self.DbOpenButton = ttk.Button(self.ContentFrame, text='Open...', command=self.DbOpenButtonOnClick)
 
-# DbPath Widgets
-DbOpenButton = ttk.Button(ContentFrame, text='Open...', command=OpenDbFile)
+        # Query Widgets.
+        self.QueryText = Text(self.ContentFrame, width=40, height=10)
+        self.QueryText.insert('1.0', 'Type Query Here...')
+        self.QueryText['state'] = 'disabled'
+        self.QueryText.bind('<Button-1>', self.QueryTextOnClick)
+        
+        self.QueryButton = ttk.Button(self.ContentFrame, text='Submit Query', command=self.QueryButtonOnClick)
+        self.QueryButton['state'] = 'disabled'
 
-# Query Widgets.
-QueryText = Text(ContentFrame, width=40, height=10)
-QueryText.insert('1.0', 'Type Query Here...')
-QueryText['state'] = 'disabled'
-QueryButton = ttk.Button(ContentFrame, text='Submit Query')
+        # Result Widgets.
+        self.ResultText = Text(self.ContentFrame, borderwidth=5, relief="sunken", width=40, height=10)
+        self.ResultText.insert('1.0', 'Query Result...')
+        self.ResultText['state'] = 'disabled'
 
-# Result Widgets.
-ResultText = Text(ContentFrame, borderwidth=5, relief="sunken", width=40, height=10)
-ResultText.insert('1.0', 'Query Result...')
-ResultText['state'] = 'disabled'
+        # Grid layouts.
+        self.ContentFrame.grid(column=0, row=0)
+        self.DbOpenButton.grid(column=0, row=0)
+        self.QueryText.grid(column=0, row=1, columnspan=4, rowspan=2)
+        self.QueryButton.grid(column=3, row=3)
+        self.ResultText.grid(column=0, row=4, columnspan=4, rowspan=2)
 
-# Grid layouts.
-ContentFrame.grid(column=0, row=0)
-DbOpenButton.grid(column=0, row=0)
+        # Mainloop.
+        self.root.mainloop()
+        
+    def DbOpenButtonOnClick(self):
+        self.DbFilePath = filedialog.askopenfilename()
+        self.DbFile = sqlite3.connect(self.DbFilePath)
+        self.DbFileIsOpen = True
+        self.DbOpenButton['state'] = 'disabled'
 
-QueryText.grid(column=0, row=1, columnspan=4, rowspan=2)
-QueryButton.grid(column=3, row=3)
-ResultText.grid(column=0, row=4, columnspan=4, rowspan=2)
+    def QueryButtonOnClick(self):
+        self.QueryButton['state'] = 'disabled'
+        self.ResultText['state'] = 'normal'
+        self.ResultText.delete('1.0', END)
+        Query = self.QueryText.get('1.0', END)
+        c = self.DbFile.cursor()
+        c.execute(Query)
+        for t in c:
+            self.ResultText.insert(END, t)
+            self.ResultText.insert(END, '\n')
+        c.close()
+        self.ResultText['state'] = 'disabled'
+        self.QueryButton['state'] = 'normal'
+        
+    def QueryTextOnClick(self, event):
+        if self.DbFileIsOpen:
+            self.QueryText['state'] = 'normal'
+            self.QueryButton['state'] = 'normal'
+        if self.QueryTextIsDefault and self.QueryText['state'] == 'normal':
+            self.QueryText.delete('1.0', END)
+            self.QueryTextIsDefault = False
 
-# mainloop
-root.mainloop()
+a = Window()
