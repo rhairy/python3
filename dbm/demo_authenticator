@@ -1,0 +1,89 @@
+"""
+Add Users
+Remove Users
+Change Passwords
+Check Passwords
+"""
+import dbm
+import passlib.hash
+import passlib.exc
+import getpass
+
+# Check if supplied database can be opened, if not exist, then ask them to create a new one.
+dbopen = False
+while dbopen == False:
+    path = input("Database: ")
+    try:
+        ##### MAYBE USED WHICHDB() BEFORE OPENING??? #####
+        db = dbm.open(path, 'w')
+        dbopen = True
+    except dbm.error as e:
+        print("Could not open Database at: ", path)
+        answer = input("Would you like to open it as a new database? (y/n): ")
+        if answer.lower() == 'y':
+            try:
+                db = dbm.open(path, 'c')
+                dbopen = True
+            except dbm.error as e:
+                print("Could not create a new Database at: ", path)
+        elif answer.lower() == 'n':
+            continue
+        else:
+            print("Invalid Input")
+
+run = True
+while run == True:
+    print("1 - Add User")
+    print("2 - Remove User")
+    print("3 - Change Password")
+    print("4 - Check Password")
+    print("5 - List Users")
+    print("6 - Quit")
+    choice = input("Select an action number: ")
+
+    if choice == "1":
+        username = input("Username: ")
+        password = getpass.getpass("Password: ")
+        password_hash = passlib.hash.bcrypt.hash(password)
+        try:
+            db[username] = password_hash
+        except dbm.error as e:
+            print(e)
+    elif choice == "2":
+        username = input("Username: ")
+        if username in db:
+            try:
+                del db[username]
+            except dbm.error as e:
+                print(e)
+        else:
+            print("No user ", username, " in the Database.")
+    elif choice == "3":
+        username = input("Username: ")
+        if username in db:
+            password = getpass.getpass("Password: ")
+            password_hash = passlib.hash.bcrypt.hash(password)
+            try:
+                db[username] = password_hash
+            except dbm.error as e:
+                print(e)
+        else:
+            print("No user ", username, " in the Database.")
+    elif choice == "4":
+        username = input("Username: ")
+        if username in db:
+            password = getpass.getpass("Password: ")
+            if passlib.hash.bcrypt.verify(password, db[username]):
+                print("Correct")
+            else:
+                print("Incorrect")
+        else:
+            print("No user ", username, " in the Database.")
+    elif choice == "5":
+        for k, v in db.items():
+            print(k)
+    elif choice == "6":
+        run = False
+    else:
+        print("Invalid Input Detected")
+db.close()
