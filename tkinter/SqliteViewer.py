@@ -53,19 +53,21 @@ class Window:
         self.DbFilePath = filedialog.askopenfilename()
         try:
             self.DbFile = sqlite3.connect(self.DbFilePath)
-            self.DbFileIsOpen = True
-            self.DbOpenButton['state'] = 'disabled'
-            self.DbCloseButton['state'] = 'normal'
+            self.StateDbOpen()
+            #self.DbFileIsOpen = True
+            #self.DbOpenButton['state'] = 'disabled'
+            #self.DbCloseButton['state'] = 'normal'
         except sqlite3.Error:
             print("Uh oh")
             
     def DbCloseButtonOnClick(self):
         try:
             self.DbFile.close()
-            self.DbCloseButton['state'] = 'disabled'
-            self.DbFileIsOpen = False
-            self.DbOpenButton['state'] = 'normal'
-            self.QueryButton['state'] = 'disabled'
+            self.StateDbClosed()
+            #self.DbCloseButton['state'] = 'disabled'
+            #self.DbFileIsOpen = False
+            #self.DbOpenButton['state'] = 'normal'
+            #self.QueryButton['state'] = 'disabled'
         except sqlite3.Error:
             print('Uh oh')
 
@@ -83,6 +85,8 @@ class Window:
             c.close()
         except sqlite3.Error as e:
             self.ResultText.insert(END, e)
+        except sqlite3.ProgrammingError as e:
+            self.ResultText.insert(END, e)
         self.ResultText['state'] = 'disabled'
         self.QueryButton['state'] = 'normal'
         
@@ -93,5 +97,20 @@ class Window:
         if self.QueryTextIsDefault and self.QueryText['state'] == 'normal':
             self.QueryText.delete('1.0', END)
             self.QueryTextIsDefault = False
+
+    def StateDbClosed(self):
+        self.DbOpenButton['state'] = 'normal'
+        self.DbCloseButton['state'] = 'disabled'
+        self.QueryText.delete('1.0', END)
+        self.QueryText.insert('1.0', "Query Result...")
+        self.QueryText['state'] = 'disabled'
+        self.QueryButton['state'] = 'disabled'
+        self.QueryTextIsDefault = True
+        
+    def StateDbOpen(self):
+        self.DbOpenButton['state'] = 'disabled'
+        self.DbCloseButton['state'] = 'normal'
+        self.DbFileIsOpen = True
+        self.QueryButton['state'] = 'disabled'
 
 a = Window()
