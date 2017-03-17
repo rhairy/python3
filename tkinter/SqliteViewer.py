@@ -17,7 +17,11 @@ class Window:
 
         self.ContentFrame = ttk.Frame(self.root)
 
-        # DbPath Widgets
+        # DbCloseButton
+        self.DbCloseButton = ttk.Button(self.ContentFrame, text='Close', command=self.DbCloseButtonOnClick)
+        self.DbCloseButton['state'] = 'disabled'
+        
+        # DbOpenButton
         self.DbOpenButton = ttk.Button(self.ContentFrame, text='Open...', command=self.DbOpenButtonOnClick)
 
         # Query Widgets.
@@ -37,6 +41,7 @@ class Window:
         # Grid layouts.
         self.ContentFrame.grid(column=0, row=0)
         self.DbOpenButton.grid(column=0, row=0)
+        self.DbCloseButton.grid(column=2, row=0)
         self.QueryText.grid(column=0, row=1, columnspan=4, rowspan=2)
         self.QueryButton.grid(column=3, row=3)
         self.ResultText.grid(column=0, row=4, columnspan=4, rowspan=2)
@@ -46,9 +51,23 @@ class Window:
         
     def DbOpenButtonOnClick(self):
         self.DbFilePath = filedialog.askopenfilename()
-        self.DbFile = sqlite3.connect(self.DbFilePath)
-        self.DbFileIsOpen = True
-        self.DbOpenButton['state'] = 'disabled'
+        try:
+            self.DbFile = sqlite3.connect(self.DbFilePath)
+            self.DbFileIsOpen = True
+            self.DbOpenButton['state'] = 'disabled'
+            self.DbCloseButton['state'] = 'normal'
+        except sqlite3.Error:
+            print("Uh oh")
+            
+    def DbCloseButtonOnClick(self):
+        try:
+            self.DbFile.close()
+            self.DbCloseButton['state'] = 'disabled'
+            self.DbFileIsOpen = False
+            self.DbOpenButton['state'] = 'normal'
+            self.QueryButton['state'] = 'disabled'
+        except sqlite3.Error:
+            print('Uh oh')
 
     def QueryButtonOnClick(self):
         self.QueryButton['state'] = 'disabled'
