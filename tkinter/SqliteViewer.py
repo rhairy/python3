@@ -56,11 +56,14 @@ class Window:
         self.ResultText.delete('1.0', END)
         Query = self.QueryText.get('1.0', END)
         c = self.DbFile.cursor()
-        c.execute(Query)
-        for t in c:
-            self.ResultText.insert(END, t)
-            self.ResultText.insert(END, '\n')
-        c.close()
+        try:
+            c.execute(Query)
+            for t in c:
+                self.ResultText.insert(END, t)
+                self.ResultText.insert(END, '\n')
+            c.close()
+        except sqlite3.Error as e:
+            self.ResultText.insert(END, e)
         self.ResultText['state'] = 'disabled'
         self.QueryButton['state'] = 'normal'
         
