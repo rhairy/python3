@@ -11,17 +11,23 @@ class Window:
         
         self.DbFileIsOpen = False
         self.QueryTextIsDefault = True
-        
+
+        # Root
         self.root = Tk()
         self.root.title("SqlCat")
 
-        self.ContentFrame = ttk.Frame(self.root)
-
-        # DbCloseButton
-        self.DbCloseButton = ttk.Button(self.ContentFrame, text='Close', command=self.DbCloseButtonOnClick)
+        # Menu
+        self.MenuBar = Menu(self.root)
+        self.MenuBarFile = Menu(self.MenuBar, tearoff=0)
+        self.MenuBarFile.add_command(label="Open Database", command=self.DbOpenButtonOnClick)
+        self.MenuBarFile.add_command(label="Close Database", command=self.DbCloseButtonOnClick)
+        self.MenuBarFile.add_separator()
+        self.MenuBarFile.add_command(label="Exit", command=self.root.quit)
+        self.MenuBar.add_cascade(label="File", menu=self.MenuBarFile)
+        self.root.config(menu=self.MenuBar)
         
-        # DbOpenButton
-        self.DbOpenButton = ttk.Button(self.ContentFrame, text='Open...', command=self.DbOpenButtonOnClick)
+        # ContentFrame
+        self.ContentFrame = ttk.Frame(self.root)
 
         # Query Widgets.
         self.QueryText = Text(self.ContentFrame, width=40, height=10)
@@ -35,8 +41,6 @@ class Window:
 
         # Grid layouts.
         self.ContentFrame.grid(column=0, row=0)
-        self.DbOpenButton.grid(column=0, row=0)
-        self.DbCloseButton.grid(column=2, row=0)
         self.QueryText.grid(column=0, row=1, columnspan=4, rowspan=2)
         self.QueryButton.grid(column=3, row=3)
         self.ResultText.grid(column=0, row=4, columnspan=4, rowspan=2)
@@ -90,8 +94,8 @@ class Window:
             self.QueryButton['state'] = 'normal'
 
     def StateDbClosed(self):
-        self.DbOpenButton['state'] = 'normal'
-        self.DbCloseButton['state'] = 'disabled'
+        self.MenuBarFile.entryconfig(0, state=NORMAL)
+        self.MenuBarFile.entryconfig(1, state=DISABLED)
         self.ResultTextWrite("Query Result...")
         self.QueryText['state'] = 'disabled'
         self.QueryButton['state'] = 'disabled'
@@ -99,8 +103,8 @@ class Window:
         self.DbFileIsOpen = False
         
     def StateDbOpen(self):
-        self.DbOpenButton['state'] = 'disabled'
-        self.DbCloseButton['state'] = 'normal'
+        self.MenuBarFile.entryconfig(0, state=DISABLED)
+        self.MenuBarFile.entryconfig(1, state=NORMAL)
         self.QueryButton['state'] = 'disabled'
         self.DbFileIsOpen = True
 
