@@ -27,23 +27,29 @@ class Window:
         self.root.config(menu=self.MenuBar)
         
         # ContentFrame
-        self.ContentFrame = ttk.Frame(self.root)
+        self.ContentFrame = ttk.Frame(self.root, padding=(5,5,5,5))
 
         # Query Widgets.
-        self.QueryText = Text(self.ContentFrame, width=40, height=10)
+        self.QueryText = Text(self.ContentFrame)
         self.QueryTextDefault()
         self.QueryText.bind('<Button-1>', self.QueryTextOnClick)
         
         self.QueryButton = ttk.Button(self.ContentFrame, text='Submit Query', command=self.QueryButtonOnClick)
 
         # Result Widgets.
-        self.ResultText = Text(self.ContentFrame, borderwidth=5, relief="sunken", width=40, height=10)
+        self.ResultText = Text(self.ContentFrame, relief="sunken")
 
         # Grid layouts.
-        self.ContentFrame.grid(column=0, row=0)
-        self.QueryText.grid(column=0, row=1, columnspan=4, rowspan=2)
-        self.QueryButton.grid(column=3, row=3)
-        self.ResultText.grid(column=0, row=4, columnspan=4, rowspan=2)
+        self.ContentFrame.grid(column=0, row=0, sticky=NSEW)
+        self.QueryText.grid(column=0, row=0, sticky=NSEW)
+        self.QueryButton.grid(column=0, row=1, sticky=E)
+        self.ResultText.grid(column=0, row=2, sticky=NSEW)
+
+        self.root.grid_columnconfigure(0, weight=1)
+        self.ContentFrame.grid_columnconfigure(0, weight=1)
+        self.ContentFrame.grid_rowconfigure(0, weight=1)
+        self.ContentFrame.grid_rowconfigure(1, weight=1)
+        self.ContentFrame.grid_rowconfigure(2, weight=1)
 
         # Set state to DbFileIsClosed
         self.StateDbClosed()
@@ -53,12 +59,13 @@ class Window:
         
     def DbOpenButtonOnClick(self):
         self.DbFilePath = filedialog.askopenfilename()
-        try:
-            self.DbFile = sqlite3.connect(self.DbFilePath)
-            self.StateDbOpen()
-            self.ResultTextWrite("Connected to Database: %s " % self.DbFilePath)
-        except sqlite3.Error:
-            print("Uh oh")
+        if self.DbFilePath:
+            try:
+                self.DbFile = sqlite3.connect(self.DbFilePath)
+                self.StateDbOpen()
+                self.ResultTextWrite("Connected to Database: %s " % self.DbFilePath)
+            except sqlite3.Error:
+                self.ResultTextWrite("Unable to connect to Database: %s " % self.DbFilePath)
             
     def DbCloseButtonOnClick(self):
         try:
